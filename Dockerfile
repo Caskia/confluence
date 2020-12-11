@@ -1,6 +1,6 @@
 FROM fedora:30
 
-LABEL maintainer="kaz@praqma.net heh@praqma.net"
+# LABEL maintainer="kaz@praqma.net heh@praqma.net"
 
 
 # Why Fedora as base OS?
@@ -29,7 +29,7 @@ LABEL maintainer="kaz@praqma.net heh@praqma.net"
 # ------------------
 # The value for CONFLUENCE_VERSION should be a version number, which is part of the name of the confluence software bin/tarball/zip.
 # ENV CONFLUENCE_VERSION 6.15.4
-ENV CONFLUENCE_VERSION 7.8.3
+ENV CONFLUENCE_VERSION 7.3.3
 
 # OS_USERNAME:
 # -----------
@@ -240,6 +240,10 @@ RUN  echo -e "LANG=\"en_US.UTF-8\" \n LC_ALL=\"en_US.UTF-8\"" > /etc/sysconfig/i
   && if [ -n "${SSL_CERTS_PATH}" ] && [ ! -d "${SSL_CERTS_PATH}" ]; then mkdir -p ${SSL_CERTS_PATH}; fi \
   && if [ -n "${SSL_CERTS_PATH}" ] && [ -d "${SSL_CERTS_PATH}" ]; then chown ${OS_USERNAME}:${OS_GROUPNAME} ${SSL_CERTS_PATH}; fi \
   && sync
+
+# Copy DB Connector driver
+# postgresql DB Connector driver
+COPY postgresql-42.2.18.jre6.jar "${JIRA_INSTALL}/confluence/WEB-INF/lib"
 
 # PLUGINS_FILE (Confluence plugins):
 # ----------------------------------
