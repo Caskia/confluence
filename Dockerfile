@@ -242,8 +242,8 @@ RUN  echo -e "LANG=\"en_US.UTF-8\" \n LC_ALL=\"en_US.UTF-8\"" > /etc/sysconfig/i
   && sync
 
 # Copy DB Connector driver
-# postgresql DB Connector driver
-COPY postgresql-42.2.18.jre6.jar "${JIRA_INSTALL}/confluence/WEB-INF/lib"
+# Mysql DB Connector driver
+COPY mysql-connector-java-5.1.49.jar "${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib"
 
 # PLUGINS_FILE (Confluence plugins):
 # ----------------------------------
