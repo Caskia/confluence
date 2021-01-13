@@ -21,8 +21,7 @@ else
       echo "CREATE DIRECTORY ${GCSFUSE_MOUNT}"
       mkdir -p ${GCSFUSE_MOUNT}
   fi
-
-  gcsfuse $GCSFUSE_ARGS ${GCSFUSE_BUCKET} ${GCSFUSE_MOUNT}
+  gcsfuse -o rw,file_mode=755,dir_mode=755 $GCSFUSE_ARGS ${GCSFUSE_BUCKET} ${GCSFUSE_MOUNT}
 fi
 
 # Check if CONFLUENCE_HOME and CONFLUENCE INSTALL variable are found in ENV.
