@@ -1,5 +1,30 @@
 #!/bin/bash
 
+# Mount GCSFUSE
+if [ -z "${GCSFUSE_BUCKET}" ]; 
+then
+  echo "Error: GCSFUSE_BUCKET is not specified, won't mount GCSFUSE"
+else
+  if [ -z "${GOOGLE_APPLICATION_CREDENTIALS}" ]; then
+  echo "Error: Missing ${GOOGLE_APPLICATION_CREDENTIALS} not provided"
+  exit 128
+  fi
+  echo "Info: Mounting GCS Filesystem"
+
+  if [ -d ${GCSFUSE_MOUNT} ]
+  then
+      echo "GCSFUSE MOUNT ${GCSFUSE_MOUNT} exists"
+      echo "Clear exists files"
+      rm -rf ${GCSFUSE_MOUNT}/*
+      rm -f ${GCSFUSE_MOUNT}/.jira-home.lock
+  else
+      echo "CREATE DIRECTORY ${GCSFUSE_MOUNT}"
+      mkdir -p ${GCSFUSE_MOUNT}
+  fi
+
+  gcsfuse $GCSFUSE_ARGS ${GCSFUSE_BUCKET} ${GCSFUSE_MOUNT}
+fi
+
 # Check if CONFLUENCE_HOME and CONFLUENCE INSTALL variable are found in ENV.
 if [ -z "${CONFLUENCE_HOME}" ] || [ -z "${CONFLUENCE_INSTALL}" ]; then
   echo "One of CONFLUENCE_HOME or CONFLUENCE_INSTALL variables - or both! - are empty."

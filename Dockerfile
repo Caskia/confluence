@@ -116,6 +116,20 @@ ENV DATACENTER_MODE false
 # ENV CONFLUENCE_DATACENTER_SHARE /var/atlassian/confluence-datacenter
 ENV CONFLUENCE_DATACENTER_SHARE /mnt/shared
 
+# GFUSE
+ENV GOOGLE_APPLICATION_CREDENTIALS="/gcscredentials"
+
+# Mount point for the gcs file system
+ENV GCSFUSE_MOUNT=$CONFLUENCE_HOME
+
+# Bucket name to mount
+ENV GCSFUSE_BUCKET=""
+
+# GCSFUSE arguments to use
+# See : https://github.com/GoogleCloudPlatform/gcsfuse
+ENV GCSFUSE_ARGS="--limit-ops-per-sec 100 --limit-bytes-per-sec 100 --stat-cache-ttl 60s --type-cache-ttl 60s"
+
+
 # CLUSTER_PEER_IPS:
 # ----------------
 # Comma separated list of cluster peer IPs in datacenter mode.
@@ -240,6 +254,10 @@ RUN  echo -e "LANG=\"en_US.UTF-8\" \n LC_ALL=\"en_US.UTF-8\"" > /etc/sysconfig/i
   && if [ -n "${SSL_CERTS_PATH}" ] && [ ! -d "${SSL_CERTS_PATH}" ]; then mkdir -p ${SSL_CERTS_PATH}; fi \
   && if [ -n "${SSL_CERTS_PATH}" ] && [ -d "${SSL_CERTS_PATH}" ]; then chown ${OS_USERNAME}:${OS_GROUPNAME} ${SSL_CERTS_PATH}; fi \
   && sync
+
+# GCSFUSE Install
+COPY gcsfuse.repo /etc/yum.repos.d/
+RUN yum -y install gcsfuse
 
 # Copy DB Connector driver
 # Postgresql DB Connector driver
