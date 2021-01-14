@@ -258,6 +258,7 @@ RUN  echo -e "LANG=\"en_US.UTF-8\" \n LC_ALL=\"en_US.UTF-8\"" > /etc/sysconfig/i
 # GCSFUSE Install
 COPY gcsfuse.repo /etc/yum.repos.d/
 RUN yum -y install gcsfuse
+RUN echo 'user_allow_other' >> /etc/fuse.conf
 
 # Copy DB Connector driver
 # Postgresql DB Connector driver
