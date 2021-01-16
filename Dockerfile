@@ -120,14 +120,16 @@ ENV CONFLUENCE_DATACENTER_SHARE /mnt/shared
 ENV GOOGLE_APPLICATION_CREDENTIALS="/gcscredentials"
 
 # Mount point for the gcs file system
-ENV GCSFUSE_MOUNT=$CONFLUENCE_HOME
+# Jira application persistent directory for attachments and plugins
+ENV GCSFUSE_MOUNT=/mnt/confluence
 
 # Bucket name to mount
 ENV GCSFUSE_BUCKET=""
 
 # GCSFUSE arguments to use
 # See : https://github.com/GoogleCloudPlatform/gcsfuse
-ENV GCSFUSE_ARGS="--limit-ops-per-sec 100 --limit-bytes-per-sec 100 --stat-cache-ttl 60s --type-cache-ttl 60s"
+# ENV GCSFUSE_ARGS="--limit-ops-per-sec 100 --limit-bytes-per-sec 100 --stat-cache-ttl 60s --type-cache-ttl 60s"
+ENV GCSFUSE_ARGS=""
 
 
 # CLUSTER_PEER_IPS:
@@ -256,6 +258,8 @@ RUN  echo -e "LANG=\"en_US.UTF-8\" \n LC_ALL=\"en_US.UTF-8\"" > /etc/sysconfig/i
   && sync
 
 # GCSFUSE Install
+RUN mkdir -p ${GCSFUSE_MOUNT} \
+  && chown -R ${OS_USERNAME}:${OS_GROUPNAME} ${GCSFUSE_MOUNT}
 COPY gcsfuse.repo /etc/yum.repos.d/
 RUN yum -y install gcsfuse
 RUN echo 'user_allow_other' >> /etc/fuse.conf
