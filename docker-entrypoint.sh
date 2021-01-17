@@ -23,42 +23,28 @@ else
   fi
   gcsfuse -o allow_other --file-mode 755 --dir-mode 755 $GCSFUSE_ARGS ${GCSFUSE_BUCKET} ${GCSFUSE_MOUNT}
 
-  CONFLUENCE_ATTACHMENT_PATH=${GCSFUSE_MOUNT}/attachments
-  if [ -d ${CONFLUENCE_ATTACHMENT_PATH} ]
-  then
-      echo "CONFLUENCE Attachment ${CONFLUENCE_ATTACHMENT_PATH} exists"
-  else
-      echo "Create Directory ${CONFLUENCE_ATTACHMENT_PATH}"
-      mkdir -p ${CONFLUENCE_ATTACHMENT_PATH}
-  fi
+  declare -A CONFLUENCE_DATA_LINKS
+  CONFLUENCE_DATA_LINKS["${GCSFUSE_MOUNT}/attachments"]="${CONFLUENCE_HOME}/attachments"
+  CONFLUENCE_DATA_LINKS["${GCSFUSE_MOUNT}/bundled-plugins"]="${CONFLUENCE_HOME}/bundled-plugins"
 
-  CONFLUENCE_LINK_ATTACHMENT_PATH=${CONFLUENCE_HOME}/attachments
-  if [ -d ${CONFLUENCE_LINK_ATTACHMENT_PATH} ]
-  then
-      echo "CONFLUENCE Source Attachment ${CONFLUENCE_LINK_ATTACHMENT_PATH} exists need to remove"
-      rm -rf ${CONFLUENCE_LINK_ATTACHMENT_PATH}
-  fi
+  for key in ${!CONFLUENCE_DATA_LINKS[@]}
+  do
+    if [ -d ${key} ]
+    then
+        echo "CONFLUENCE Data ${key} exists"
+    else
+        echo "Create Directory ${key}"
+        mkdir -p ${key}
+    fi
 
-  ln -s ${CONFLUENCE_ATTACHMENT_PATH} ${CONFLUENCE_LINK_ATTACHMENT_PATH}
+    if [ -d ${CONFLUENCE_DATA_LINKS[$key]} ]
+    then
+        echo "CONFLUENCE Data Link ${CONFLUENCE_DATA_LINKS[$key]} exists need to remove"
+        rm -rf ${CONFLUENCE_DATA_LINKS[$key]}
+    fi
 
-  CONFLUENCE_PLUGINS_PATH=${GCSFUSE_MOUNT}/bundled-plugins
-  if [ -d ${CONFLUENCE_PLUGINS_PATH} ]
-  then
-      echo "CONFLUENCE Plugins ${CONFLUENCE_PLUGINS_PATH} exists"
-  else
-      echo "Create Directory ${CONFLUENCE_PLUGINS_PATH}"
-      mkdir -p ${CONFLUENCE_PLUGINS_PATH}
-  fi
-
-  CONFLUENCE_LINK_PLUGINS_PATH=${CONFLUENCE_HOME}/bundled-plugins
-  if [ -d ${CONFLUENCE_LINK_PLUGINS_PATH} ]
-  then
-      echo "CONFLUENCE Source Plugins ${CONFLUENCE_LINK_PLUGINS_PATH} exists need to remove"
-      rm -rf ${CONFLUENCE_LINK_PLUGINS_PATH}
-  fi
-
-  ln -s ${CONFLUENCE_PLUGINS_PATH} ${CONFLUENCE_LINK_PLUGINS_PATH} 
-
+    ln -s ${key} ${CONFLUENCE_DATA_LINKS[$key]}
+  done
 fi
 
 # Check if CONFLUENCE_HOME and CONFLUENCE INSTALL variable are found in ENV.
