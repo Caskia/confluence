@@ -16,7 +16,7 @@ else
       echo "GCSFUSE MOUNT ${GCSFUSE_MOUNT} exists"
       echo "Clear exists files"
       rm -rf ${GCSFUSE_MOUNT}/*
-      rm -f ${GCSFUSE_MOUNT}/.jira-home.lock
+      rm -f ${GCSFUSE_MOUNT}/.CONFLUENCE-home.lock
   else
       echo "CREATE DIRECTORY ${GCSFUSE_MOUNT}"
       mkdir -p ${GCSFUSE_MOUNT}
@@ -35,12 +35,20 @@ else
     else
         echo "Create Directory ${key}"
         mkdir -p ${key}
+        echo "Directory ${key} created"
     fi
 
     if [ -d ${CONFLUENCE_DATA_LINKS[$key]} ]
     then
         echo "CONFLUENCE Data Link ${CONFLUENCE_DATA_LINKS[$key]} exists need to remove"
         rm -rf ${CONFLUENCE_DATA_LINKS[$key]}
+        echo "CONFLUENCE Data Link ${CONFLUENCE_DATA_LINKS[$key]} removed"
+    else
+        echo "CONFLUENCE Data Link ${CONFLUENCE_DATA_LINKS[$key]} not exists."
+        mkdir -p ${CONFLUENCE_DATA_LINKS[$key]}
+        echo "CONFLUENCE Data Link ${CONFLUENCE_DATA_LINKS[$key]} created."
+        rm -rf ${CONFLUENCE_DATA_LINKS[$key]}
+        echo "CONFLUENCE Data Link ${CONFLUENCE_DATA_LINKS[$key]} removed, leave directory."
     fi
 
     ln -s ${key} ${CONFLUENCE_DATA_LINKS[$key]}
