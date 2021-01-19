@@ -6,53 +6,44 @@ then
   echo "Error: GCSFUSE_BUCKET is not specified, won't mount GCSFUSE"
 else
   if [ -z "${GOOGLE_APPLICATION_CREDENTIALS}" ]; then
-  echo "Error: Missing ${GOOGLE_APPLICATION_CREDENTIALS} not provided"
-  exit 128
+    echo "Error: Missing ${GOOGLE_APPLICATION_CREDENTIALS} not provided"
+  else  
+    echo "Info: Mounting GCS Filesystem"
+
+    IFS='; ' read -r -a GCSFUSE_MOUNTS <<< ${GCSFUSE_MOUNT}
+    IFS='; ' read -r -a GCSFUSE_BUCKETS <<< ${GCSFUSE_BUCKET}
+
+    for i in "${!GCSFUSE_MOUNTS[@]}";   
+    do   
+      MOUNT="${GCSFUSE_MOUNT_PREFIX}${GCSFUSE_MOUNTS[$i]}"
+      MOUNT_LINK="${CONFLUENCE_HOME}${GCSFUSE_MOUNTS[$i]}"
+      BUCKET=${GCSFUSE_BUCKETS[$i]}
+
+      if [ -d ${MOUNT} ]
+      then
+          echo "GCSFUSE MOUNT ${MOUNT} exists"
+      else
+          echo "CREATE DIRECTORY ${MOUNT}"
+          mkdir -p ${MOUNT}
+      fi
+      gcsfuse -o allow_other --file-mode 755 --dir-mode 755 $GCSFUSE_ARGS ${BUCKET} ${MOUNT}
+
+      if [ -d ${MOUNT_LINK} ]
+        then
+            echo "CONFLUENCE Data Link ${MOUNT_LINK} exists need to remove"
+            rm -rf ${MOUNT_LINK}
+            echo "CONFLUENCE Data Link ${MOUNT_LINK} removed"
+        else
+            echo "CONFLUENCE Data Link ${MOUNT_LINK} not exists."
+            mkdir -p ${MOUNT_LINK}
+            echo "CONFLUENCE Data Link ${MOUNT_LINK} created."
+            rm -rf ${MOUNT_LINK}
+            echo "CONFLUENCE Data Link ${MOUNT_LINK} removed, leave directory."
+        fi
+
+        ln -s ${MOUNT} ${MOUNT_LINK}
+    done
   fi
-  echo "Info: Mounting GCS Filesystem"
-
-  if [ -d ${GCSFUSE_MOUNT} ]
-  then
-      echo "GCSFUSE MOUNT ${GCSFUSE_MOUNT} exists"
-      echo "Clear exists files"
-      rm -rf ${GCSFUSE_MOUNT}/*
-      rm -f ${GCSFUSE_MOUNT}/.CONFLUENCE-home.lock
-  else
-      echo "CREATE DIRECTORY ${GCSFUSE_MOUNT}"
-      mkdir -p ${GCSFUSE_MOUNT}
-  fi
-  gcsfuse -o allow_other --file-mode 755 --dir-mode 755 $GCSFUSE_ARGS ${GCSFUSE_BUCKET} ${GCSFUSE_MOUNT}
-
-  declare -A CONFLUENCE_DATA_LINKS
-  CONFLUENCE_DATA_LINKS["${GCSFUSE_MOUNT}/attachments"]="${CONFLUENCE_HOME}/attachments"
-  CONFLUENCE_DATA_LINKS["${GCSFUSE_MOUNT}/bundled-plugins"]="${CONFLUENCE_HOME}/bundled-plugins"
-
-  for key in ${!CONFLUENCE_DATA_LINKS[@]}
-  do
-    if [ -d ${key} ]
-    then
-        echo "CONFLUENCE Data ${key} exists"
-    else
-        echo "Create Directory ${key}"
-        mkdir -p ${key}
-        echo "Directory ${key} created"
-    fi
-
-    if [ -d ${CONFLUENCE_DATA_LINKS[$key]} ]
-    then
-        echo "CONFLUENCE Data Link ${CONFLUENCE_DATA_LINKS[$key]} exists need to remove"
-        rm -rf ${CONFLUENCE_DATA_LINKS[$key]}
-        echo "CONFLUENCE Data Link ${CONFLUENCE_DATA_LINKS[$key]} removed"
-    else
-        echo "CONFLUENCE Data Link ${CONFLUENCE_DATA_LINKS[$key]} not exists."
-        mkdir -p ${CONFLUENCE_DATA_LINKS[$key]}
-        echo "CONFLUENCE Data Link ${CONFLUENCE_DATA_LINKS[$key]} created."
-        rm -rf ${CONFLUENCE_DATA_LINKS[$key]}
-        echo "CONFLUENCE Data Link ${CONFLUENCE_DATA_LINKS[$key]} removed, leave directory."
-    fi
-
-    ln -s ${key} ${CONFLUENCE_DATA_LINKS[$key]}
-  done
 fi
 
 # Check if CONFLUENCE_HOME and CONFLUENCE INSTALL variable are found in ENV.
