@@ -116,6 +116,10 @@ ENV DATACENTER_MODE false
 # ENV CONFLUENCE_DATACENTER_SHARE /var/atlassian/confluence-datacenter
 ENV CONFLUENCE_DATACENTER_SHARE /mnt/shared
 
+# DATA_MOUNT_METHOD
+# BUCKET or FILESTORE
+ENV DATA_MOUNT_METHOD = "BUCKET"
+
 # GFUSE
 ENV GOOGLE_APPLICATION_CREDENTIALS="/gcscredentials"
 
@@ -132,6 +136,11 @@ ENV GCSFUSE_BUCKET="bucket1_name; bucket2_name"
 # ENV GCSFUSE_ARGS="--limit-ops-per-sec 100 --limit-bytes-per-sec 100 --stat-cache-ttl 60s --type-cache-ttl 60s"
 ENV GCSFUSE_ARGS=""
 
+# FILESTORE
+# Mount point for the file store
+ENV FILESTORE_MOUNT_PREFIX="/mnt/confluence"
+# Jira application persistent directory for attachments and plugins
+ENV FILESTORE_MOUNT="/attachments; /bundled-plugins"
 
 # CLUSTER_PEER_IPS:
 # ----------------
@@ -263,9 +272,17 @@ RUN  echo -e "LANG=\"en_US.UTF-8\" \n LC_ALL=\"en_US.UTF-8\"" > /etc/sysconfig/i
 RUN mkdir -p ${GCSFUSE_MOUNT_PREFIX} \
   && chown -R ${OS_USERNAME}:${OS_GROUPNAME} ${GCSFUSE_MOUNT_PREFIX}
 # Install gcsfuse
-COPY gcsfuse.repo /etc/yum.repos.d/
-RUN yum -y install gcsfuse
+RUN yum -y install fuse
+RUN curl -L -O https://github.com/GoogleCloudPlatform/gcsfuse/releases/download/v0.33.2/gcsfuse-0.33.2-1.x86_64.rpm
+RUN rpm --install -p gcsfuse-0.33.2-1.x86_64.rpm
+# COPY gcsfuse.repo /etc/yum.repos.d/
+# RUN yum -y install gcsfuse
 RUN echo 'user_allow_other' >> /etc/fuse.conf
+
+# FILESTORE
+# Create diretory and grant permission
+RUN mkdir -p ${FILESTORE_MOUNT_PREFIX}} \
+  && chown -R ${OS_USERNAME}:${OS_GROUPNAME} ${FILESTORE_MOUNT_PREFIX}
 
 # Copy DB Connector driver
 # Postgresql DB Connector driver
@@ -298,6 +315,11 @@ EXPOSE 8091/tcp
 # Expose the additional connector's port (8888), if you enabled ADDITIONAL_CONNECTOR further up in this Dockerfile.
 # If you are not using, it is best to not expose it as well.
 # EXPOSE 8888/tcp
+
+# Set default user as root and remove password
+RUN yum -y install passwd \
+  && sudo usermod -aG wheel ${OS_USERNAME} \
+  && passwd -d ${OS_USERNAME}
 
 # Change the  the default working directory from '/' to '/var/atlassian/application-data/confluence'
 #   - or whatever value you used above as CONFLUENCE_HOME.
