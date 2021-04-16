@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Mount GCSFUSE
-if [ "${DATA_MOUNT_METHOD}" == "BUCKET" ];
+if [ "${DATACENTER_MODE}" == "false" -o -z "${DATACENTER_MODE}" ] && [ "${DATA_MOUNT_METHOD}" == "BUCKET" ];
 then
   if [ -z "${GCSFUSE_BUCKET}" ]; 
   then
@@ -50,7 +50,7 @@ then
 fi
 
 # Link FILESTORE
-if [ "${DATA_MOUNT_METHOD}" == "FILESTORE" ];
+if [ "${DATACENTER_MODE}" == "false" -o -z "${DATACENTER_MODE}" ] && [ "${DATA_MOUNT_METHOD}" == "FILESTORE" ];
 then
   if [ -z "${FILESTORE_MOUNT}" ]; 
   then
@@ -227,6 +227,9 @@ echo
 # Check if DATACENTER_MODE is set to true and CONFLUENCE_DATACENTER_SHARE is configured
 if [ "$DATACENTER_MODE" == "true" ] && [ -n "${CONFLUENCE_DATACENTER_SHARE}" ]; then
   echo "DATACENTER_MODE is set to 'true' and CONFLUENCE_DATACENTER_SHARE is found set to: ${CONFLUENCE_DATACENTER_SHARE}"
+  echo "Assign application user to read/write/execute CONFLUENCE_DATACENTER_SHARE."
+  sudo chown ${OS_USERNAME}:${OS_GROUPNAME} ${CONFLUENCE_DATACENTER_SHARE}
+
   echo "Proceeding to setup Confluence in DataCenter mode..."
   # Note: The DataCenter logic for Confluence differs from Confluence.
   # Setting cluster node name in catalina opts:
